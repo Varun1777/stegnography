@@ -1,4 +1,4 @@
-import { Image, Audio, Video } from "lucide-react";
+import { Image, Music, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type FileType = "image" | "audio" | "video";
@@ -14,7 +14,7 @@ export const FileTypeSelector = ({
 }: FileTypeSelectorProps) => {
   const types = [
     { id: "image" as FileType, icon: Image, label: "Image" },
-    { id: "audio" as FileType, icon: Audio, label: "Audio" },
+    { id: "audio" as FileType, icon: Music, label: "Audio" },
     { id: "video" as FileType, icon: Video, label: "Video" },
   ];
 
