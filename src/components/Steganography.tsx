@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Lock, Unlock, Download } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type FileType = "image" | "audio" | "video";
 type Mode = "encode" | "decode";
@@ -22,6 +23,7 @@ export const Steganography = () => {
   const [secretMessage, setSecretMessage] = useState("");
   const [secretKey, setSecretKey] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [decodedMessage, setDecodedMessage] = useState<string>("");
   const { toast } = useToast();
 
   const handleProcess = useCallback(async () => {
@@ -29,6 +31,11 @@ export const Steganography = () => {
     try {
       // Simulate processing
       await new Promise((resolve) => setTimeout(resolve, 2000));
+      
+      if (mode === "decode") {
+        // Simulate decoded message (in real implementation, this would come from actual steganography decoding)
+        setDecodedMessage("This is your decoded secret message!");
+      }
       
       toast({
         title: mode === "encode" ? "File encoded successfully!" : "Message decoded successfully!",
@@ -44,11 +51,12 @@ export const Steganography = () => {
         link.href = URL.createObjectURL(file!);
         link.download = `encoded_${file!.name}`;
         link.click();
+        
+        // Reset form after encode
+        setFile(null);
+        setSecretMessage("");
+        setSecretKey("");
       }
-      
-      setFile(null);
-      setSecretMessage("");
-      setSecretKey("");
     } catch (error) {
       toast({
         title: "Error",
@@ -62,12 +70,20 @@ export const Steganography = () => {
 
   const isValid = file && secretKey && (mode === "decode" || secretMessage);
 
+  const handleModeChange = (newMode: Mode) => {
+    setMode(newMode);
+    setDecodedMessage(""); // Clear decoded message when switching modes
+    setFile(null);
+    setSecretMessage("");
+    setSecretKey("");
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8 animate-fade-in">
       <div className="flex justify-center gap-4 mb-8">
         <Button
           variant={mode === "encode" ? "default" : "outline"}
-          onClick={() => setMode("encode")}
+          onClick={() => handleModeChange("encode")}
           className="gap-2"
         >
           <Lock className="w-4 h-4" />
@@ -75,7 +91,7 @@ export const Steganography = () => {
         </Button>
         <Button
           variant={mode === "decode" ? "default" : "outline"}
-          onClick={() => setMode("decode")}
+          onClick={() => handleModeChange("decode")}
           className="gap-2"
         >
           <Unlock className="w-4 h-4" />
@@ -107,6 +123,14 @@ export const Steganography = () => {
         value={secretKey}
         onChange={(e) => setSecretKey(e.target.value)}
       />
+
+      {mode === "decode" && decodedMessage && (
+        <Alert>
+          <AlertDescription className="font-medium">
+            Decoded Message: {decodedMessage}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex justify-center">
         <Button
