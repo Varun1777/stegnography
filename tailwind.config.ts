@@ -79,11 +79,25 @@ export default {
             transform: "translateY(0)"
           },
         },
+        "gradient-x": {
+          "0%, 100%": {
+            "background-position": "200% 0",
+          },
+          "50%": {
+            "background-position": "0 0",
+          },
+        },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out forwards",
+        "gradient-x": "gradient-x 15s linear infinite",
+        "spin-slow": "spin-slow 20s linear infinite",
       },
     },
   },
