@@ -28,6 +28,7 @@ export const Steganography = () => {
   const [secretKey, setSecretKey] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [decodedMessage, setDecodedMessage] = useState<string>("");
+  const [decodedFileUrl, setDecodedFileUrl] = useState<string>("");
   const [isKeyCorrect, setIsKeyCorrect] = useState(false);
   const { toast } = useToast();
 
@@ -41,6 +42,11 @@ export const Steganography = () => {
         if (secretKey === MOCK_SECRET_KEY) {
           setIsKeyCorrect(true);
           setDecodedMessage("This is your decoded secret message!");
+          // Create object URL for the decoded file preview
+          if (file) {
+            const fileUrl = URL.createObjectURL(file);
+            setDecodedFileUrl(fileUrl);
+          }
           toast({
             title: "Message decoded successfully!",
             description: "The secret message has been revealed.",
@@ -85,6 +91,7 @@ export const Steganography = () => {
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
     setDecodedMessage("");
+    setDecodedFileUrl("");
     setFile(null);
     setSecretMessage("");
     setSecretKey("");
@@ -151,13 +158,46 @@ export const Steganography = () => {
             className="border-stego-accent/20 focus:border-stego-accent"
           />
 
-          {/* Decoded Message Display */}
-          {mode === "decode" && isKeyCorrect && decodedMessage && (
-            <Alert className="bg-stego-accent/10 border-stego-accent/20">
-              <AlertDescription className="font-medium text-stego-primary">
-                Decoded Message: {decodedMessage}
-              </AlertDescription>
-            </Alert>
+          {/* Decoded Content Display */}
+          {mode === "decode" && isKeyCorrect && (decodedMessage || decodedFileUrl) && (
+            <div className="space-y-4">
+              {/* Decoded Message */}
+              <Alert className="bg-stego-accent/10 border-stego-accent/20">
+                <AlertDescription className="font-medium text-stego-primary">
+                  Decoded Message: {decodedMessage}
+                </AlertDescription>
+              </Alert>
+
+              {/* Decoded File Preview */}
+              {decodedFileUrl && (
+                <div className="mt-4">
+                  <p className="text-sm text-stego-muted mb-2">Decoded File Preview:</p>
+                  <div className="rounded-lg overflow-hidden border border-stego-accent/20">
+                    {fileType === "image" && (
+                      <img
+                        src={decodedFileUrl}
+                        alt="Decoded content"
+                        className="w-full h-auto max-h-[300px] object-contain"
+                      />
+                    )}
+                    {fileType === "video" && (
+                      <video
+                        src={decodedFileUrl}
+                        controls
+                        className="w-full h-auto max-h-[300px]"
+                      />
+                    )}
+                    {fileType === "audio" && (
+                      <audio
+                        src={decodedFileUrl}
+                        controls
+                        className="w-full"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Process Button */}
