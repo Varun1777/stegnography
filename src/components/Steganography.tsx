@@ -17,8 +17,9 @@ const ACCEPTED_TYPES = {
   video: "video/*",
 };
 
-// Mock secret key for demonstration
-const MOCK_SECRET_KEY = "1234";
+// For demonstration, we'll store the encoded message in memory
+// In a real app, this would be handled by proper steganography algorithms
+let encodedMessage = "";
 
 export const Steganography = () => {
   const [fileType, setFileType] = useState<FileType>("image");
@@ -35,21 +36,25 @@ export const Steganography = () => {
   const handleProcess = useCallback(async () => {
     setIsProcessing(true);
     try {
-      // Simulate processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Simulate processing time
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       
       if (mode === "decode") {
-        if (secretKey === MOCK_SECRET_KEY) {
+        // In decode mode, verify the key and extract the message
+        if (secretKey === "1234") { // In a real app, this would be properly hashed
           setIsKeyCorrect(true);
-          setDecodedMessage("This is your decoded secret message!");
-          // Create object URL for the decoded file preview
+          // Set the decoded message to what was previously encoded
+          setDecodedMessage(encodedMessage || "No message found in this file");
+          
+          // Create preview URL for the decoded file
           if (file) {
             const fileUrl = URL.createObjectURL(file);
             setDecodedFileUrl(fileUrl);
           }
+          
           toast({
-            title: "Message decoded successfully!",
-            description: "The secret message has been revealed.",
+            title: "File decoded successfully!",
+            description: "The hidden message has been extracted.",
           });
         } else {
           setIsKeyCorrect(false);
@@ -60,11 +65,15 @@ export const Steganography = () => {
           });
         }
       } else {
+        // In encode mode, store the message (in a real app, this would use steganography)
+        encodedMessage = secretMessage;
+        
         toast({
-          title: "File encoded successfully!",
-          description: "Your file is ready for download.",
+          title: "Message encoded successfully!",
+          description: "Your message has been hidden in the file.",
         });
 
+        // Simulate file download
         const link = document.createElement("a");
         link.href = URL.createObjectURL(file!);
         link.download = `encoded_${file!.name}`;
@@ -84,7 +93,7 @@ export const Steganography = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, [mode, file, secretKey, toast]);
+  }, [mode, file, secretMessage, secretKey, toast]);
 
   const isValid = file && secretKey && (mode === "decode" || secretMessage);
 
@@ -100,7 +109,6 @@ export const Steganography = () => {
 
   return (
     <div className="space-y-8">
-      {/* Mode Selection */}
       <div className="flex justify-center gap-4">
         <Button
           variant={mode === "encode" ? "default" : "outline"}
@@ -125,19 +133,14 @@ export const Steganography = () => {
       {/* File Type Selection */}
       <FileTypeSelector selectedType={fileType} onTypeSelect={setFileType} />
 
-      {/* Main Content Card */}
       <Card className="overflow-hidden border-stego-accent/20">
         <CardContent className="p-6 space-y-6">
-          {/* File Upload */}
-          <div className="animate-fade-in">
-            <FileUpload
-              onFileSelect={setFile}
-              acceptedTypes={ACCEPTED_TYPES[fileType]}
-              selectedFile={file}
-            />
-          </div>
+          <FileUpload
+            onFileSelect={setFile}
+            acceptedTypes={ACCEPTED_TYPES[fileType]}
+            selectedFile={file}
+          />
 
-          {/* Secret Message Input (Encode Mode) */}
           {mode === "encode" && (
             <div className="space-y-4 animate-fade-in">
               <Input
@@ -149,7 +152,6 @@ export const Steganography = () => {
             </div>
           )}
 
-          {/* Secret Key Input */}
           <Input
             type="password"
             placeholder="Enter your secret key"
@@ -164,19 +166,20 @@ export const Steganography = () => {
               {/* Decoded Message */}
               <Alert className="bg-stego-accent/10 border-stego-accent/20">
                 <AlertDescription className="font-medium text-stego-primary">
-                  Decoded Message: {decodedMessage}
+                  <span className="block font-semibold mb-1">Extracted Message:</span>
+                  {decodedMessage}
                 </AlertDescription>
               </Alert>
 
-              {/* Decoded File Preview */}
+              {/* File Preview */}
               {decodedFileUrl && (
                 <div className="mt-4">
-                  <p className="text-sm text-stego-muted mb-2">Decoded File Preview:</p>
+                  <p className="text-sm text-stego-muted mb-2">Original File:</p>
                   <div className="rounded-lg overflow-hidden border border-stego-accent/20">
                     {fileType === "image" && (
                       <img
                         src={decodedFileUrl}
-                        alt="Decoded content"
+                        alt="Original content"
                         className="w-full h-auto max-h-[300px] object-contain"
                       />
                     )}
