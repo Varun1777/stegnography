@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Unlock, Download, Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 
 type FileType = "image" | "audio" | "video";
@@ -28,9 +27,7 @@ export const Steganography = () => {
   const [secretMessage, setSecretMessage] = useState("");
   const [secretKey, setSecretKey] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [decodedMessage, setDecodedMessage] = useState<string>("");
   const [decodedFileUrl, setDecodedFileUrl] = useState<string>("");
-  const [isKeyCorrect, setIsKeyCorrect] = useState(false);
   const { toast } = useToast();
 
   const handleProcess = useCallback(async () => {
@@ -40,12 +37,7 @@ export const Steganography = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
       if (mode === "decode") {
-        // In decode mode, verify the key and extract the message
         if (secretKey === "1234") { // In a real app, this would be properly hashed
-          setIsKeyCorrect(true);
-          // Set the decoded message to what was previously encoded
-          setDecodedMessage(encodedMessage || "No message found in this file");
-          
           // Create preview URL for the decoded file
           if (file) {
             const fileUrl = URL.createObjectURL(file);
@@ -54,10 +46,9 @@ export const Steganography = () => {
           
           toast({
             title: "File decoded successfully!",
-            description: "The hidden message has been extracted.",
+            description: `Hidden message: ${encodedMessage || "No message found"}`,
           });
         } else {
-          setIsKeyCorrect(false);
           toast({
             title: "Incorrect secret key",
             description: "Please enter the correct secret key to decode the message.",
@@ -65,7 +56,7 @@ export const Steganography = () => {
           });
         }
       } else {
-        // In encode mode, store the message (in a real app, this would use steganography)
+        // In encode mode, store the message
         encodedMessage = secretMessage;
         
         toast({
@@ -99,12 +90,10 @@ export const Steganography = () => {
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
-    setDecodedMessage("");
     setDecodedFileUrl("");
     setFile(null);
     setSecretMessage("");
     setSecretKey("");
-    setIsKeyCorrect(false);
   };
 
   return (
@@ -113,7 +102,7 @@ export const Steganography = () => {
         <Button
           variant={mode === "encode" ? "default" : "outline"}
           onClick={() => handleModeChange("encode")}
-          className="group relative overflow-hidden"
+          className="group relative overflow-hidden w-32"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-stego-accent to-stego-primary opacity-0 group-hover:opacity-10 transition-opacity" />
           <Lock className="w-4 h-4 mr-2" />
@@ -122,7 +111,7 @@ export const Steganography = () => {
         <Button
           variant={mode === "decode" ? "default" : "outline"}
           onClick={() => handleModeChange("decode")}
-          className="group relative overflow-hidden"
+          className="group relative overflow-hidden w-32"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-stego-accent to-stego-primary opacity-0 group-hover:opacity-10 transition-opacity" />
           <Unlock className="w-4 h-4 mr-2" />
@@ -130,7 +119,6 @@ export const Steganography = () => {
         </Button>
       </div>
 
-      {/* File Type Selection */}
       <FileTypeSelector selectedType={fileType} onTypeSelect={setFileType} />
 
       <Card className="overflow-hidden border-stego-accent/20">
@@ -160,46 +148,33 @@ export const Steganography = () => {
             className="border-stego-accent/20 focus:border-stego-accent"
           />
 
-          {/* Decoded Content Display */}
-          {mode === "decode" && isKeyCorrect && (decodedMessage || decodedFileUrl) && (
-            <div className="space-y-4">
-              {/* Decoded Message */}
-              <Alert className="bg-stego-accent/10 border-stego-accent/20">
-                <AlertDescription className="font-medium text-stego-primary">
-                  <span className="block font-semibold mb-1">Extracted Message:</span>
-                  {decodedMessage}
-                </AlertDescription>
-              </Alert>
-
-              {/* File Preview */}
-              {decodedFileUrl && (
-                <div className="mt-4">
-                  <p className="text-sm text-stego-muted mb-2">Original File:</p>
-                  <div className="rounded-lg overflow-hidden border border-stego-accent/20">
-                    {fileType === "image" && (
-                      <img
-                        src={decodedFileUrl}
-                        alt="Original content"
-                        className="w-full h-auto max-h-[300px] object-contain"
-                      />
-                    )}
-                    {fileType === "video" && (
-                      <video
-                        src={decodedFileUrl}
-                        controls
-                        className="w-full h-auto max-h-[300px]"
-                      />
-                    )}
-                    {fileType === "audio" && (
-                      <audio
-                        src={decodedFileUrl}
-                        controls
-                        className="w-full"
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
+          {/* File Preview */}
+          {mode === "decode" && decodedFileUrl && (
+            <div className="mt-4">
+              <p className="text-sm text-stego-muted mb-2">Original File:</p>
+              <div className="rounded-lg overflow-hidden border border-stego-accent/20">
+                {fileType === "image" && (
+                  <img
+                    src={decodedFileUrl}
+                    alt="Original content"
+                    className="w-full h-auto max-h-[300px] object-contain"
+                  />
+                )}
+                {fileType === "video" && (
+                  <video
+                    src={decodedFileUrl}
+                    controls
+                    className="w-full h-auto max-h-[300px]"
+                  />
+                )}
+                {fileType === "audio" && (
+                  <audio
+                    src={decodedFileUrl}
+                    controls
+                    className="w-full"
+                  />
+                )}
+              </div>
             </div>
           )}
 
