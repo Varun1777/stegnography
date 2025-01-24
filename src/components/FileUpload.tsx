@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Upload, X } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
@@ -57,9 +57,12 @@ export const FileUpload = ({
 
   return (
     <div
-      className={`relative border-2 border-dashed rounded-lg p-8 text-center ${
-        isDragging ? "border-stego-accent bg-stego-accent/5" : "border-gray-300"
-      }`}
+      className={cn(
+        "relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300",
+        "hover:border-stego-accent hover:bg-stego-accent/5",
+        isDragging ? "border-stego-accent bg-stego-accent/5 scale-102" : "border-gray-300",
+        "group"
+      )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -69,17 +72,17 @@ export const FileUpload = ({
           <span className="text-stego-primary">{selectedFile.name}</span>
           <button
             onClick={() => onFileSelect(null as any)}
-            className="text-red-500 hover:text-red-700"
+            className="text-red-500 hover:text-red-700 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
       ) : (
         <>
-          <Upload className="mx-auto h-12 w-12 text-gray-400" />
+          <Upload className="mx-auto h-12 w-12 text-gray-400 group-hover:text-stego-accent transition-colors" />
           <p className="mt-2 text-sm text-gray-600">
             Drag and drop your file here, or{" "}
-            <label className="text-stego-accent cursor-pointer hover:text-stego-accent/80">
+            <label className="text-stego-accent cursor-pointer hover:text-stego-accent/80 transition-colors">
               browse
               <input
                 type="file"

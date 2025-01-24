@@ -19,16 +19,16 @@ export const FileTypeSelector = ({
   ];
 
   return (
-    <div className="flex gap-4 justify-center mb-8">
+    <div className="flex gap-4 justify-center">
       {types.map(({ id, icon: Icon, label }) => (
         <button
           key={id}
           onClick={() => onTypeSelect(id)}
           className={cn(
-            "flex flex-col items-center p-4 rounded-lg transition-all duration-200",
-            "hover:bg-stego-accent/10",
+            "flex flex-col items-center p-4 rounded-lg transition-all duration-300",
+            "hover:bg-stego-accent/10 hover:scale-105 transform",
             selectedType === id
-              ? "bg-stego-accent/20 text-stego-accent"
+              ? "bg-stego-accent/20 text-stego-accent scale-105"
               : "text-stego-muted"
           )}
         >
