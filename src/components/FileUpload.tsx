@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
