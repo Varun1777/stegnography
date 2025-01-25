@@ -4,8 +4,9 @@ import { FileUpload } from "./FileUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Download, Loader2 } from "lucide-react";
+import { Lock, Unlock, Download, Loader2, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type FileType = "image" | "audio" | "video";
 type Mode = "encode" | "decode";
@@ -28,25 +29,26 @@ export const Steganography = () => {
   const [secretKey, setSecretKey] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [decodedFileUrl, setDecodedFileUrl] = useState<string>("");
+  const [showDecodedMessage, setShowDecodedMessage] = useState(false);
   const { toast } = useToast();
 
   const handleProcess = useCallback(async () => {
     setIsProcessing(true);
     try {
-      // Simulate processing time
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
       if (mode === "decode") {
-        if (secretKey === "1234") { // In a real app, this would be properly hashed
-          // Create preview URL for the decoded file
+        if (secretKey === "1234") {
           if (file) {
             const fileUrl = URL.createObjectURL(file);
             setDecodedFileUrl(fileUrl);
           }
           
+          setShowDecodedMessage(true);
+          
           toast({
             title: "File decoded successfully!",
-            description: `Hidden message: ${encodedMessage || "No message found"}`,
+            description: "The hidden message has been revealed.",
           });
         } else {
           toast({
@@ -56,7 +58,6 @@ export const Steganography = () => {
           });
         }
       } else {
-        // In encode mode, store the message
         encodedMessage = secretMessage;
         
         toast({
@@ -64,13 +65,11 @@ export const Steganography = () => {
           description: "Your message has been hidden in the file.",
         });
 
-        // Simulate file download
         const link = document.createElement("a");
         link.href = URL.createObjectURL(file!);
         link.download = `encoded_${file!.name}`;
         link.click();
         
-        // Reset form after encode
         setFile(null);
         setSecretMessage("");
         setSecretKey("");
@@ -94,6 +93,7 @@ export const Steganography = () => {
     setFile(null);
     setSecretMessage("");
     setSecretKey("");
+    setShowDecodedMessage(false);
   };
 
   return (
@@ -148,11 +148,26 @@ export const Steganography = () => {
             className="border-stego-accent/20 focus:border-stego-accent"
           />
 
-          {/* File Preview */}
+          {mode === "decode" && showDecodedMessage && encodedMessage && (
+            <div className="animate-fade-in">
+              <Alert className="bg-gradient-to-r from-stego-accent/10 to-stego-primary/10 border-stego-accent/20">
+                <MessageSquare className="h-4 w-4" />
+                <AlertDescription className="mt-2">
+                  <div className="font-medium text-lg text-stego-primary animate-fade-in">
+                    Hidden Message:
+                  </div>
+                  <div className="mt-2 p-4 bg-white/50 rounded-lg shadow-inner animate-scale-in">
+                    {encodedMessage}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+
           {mode === "decode" && decodedFileUrl && (
-            <div className="mt-4">
+            <div className="mt-4 animate-fade-in">
               <p className="text-sm text-stego-muted mb-2">Original File:</p>
-              <div className="rounded-lg overflow-hidden border border-stego-accent/20">
+              <div className="rounded-lg overflow-hidden border border-stego-accent/20 animate-scale-in">
                 {fileType === "image" && (
                   <img
                     src={decodedFileUrl}
@@ -178,7 +193,6 @@ export const Steganography = () => {
             </div>
           )}
 
-          {/* Process Button */}
           <div className="flex justify-center pt-4">
             <Button
               onClick={handleProcess}
