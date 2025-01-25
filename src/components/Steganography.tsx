@@ -27,6 +27,7 @@ export const Steganography = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [decodedFileUrl, setDecodedFileUrl] = useState<string>("");
   const [showDecodedMessage, setShowDecodedMessage] = useState(false);
+  const [encodedMessage, setEncodedMessage] = useState<string>("");
   const { toast } = useToast();
 
   const handleProcess = useCallback(async () => {
@@ -40,7 +41,7 @@ export const Steganography = () => {
             
             // Use DCT algorithm to decode the message
             const message = await DCTSteganography.decode(file);
-            encodedMessage = message;
+            setEncodedMessage(message);
             setShowDecodedMessage(true);
             
             toast({
@@ -59,7 +60,7 @@ export const Steganography = () => {
         if (file && secretMessage) {
           // Use DCT algorithm to encode the message
           const encodedBlob = await DCTSteganography.encode(file, secretMessage);
-          encodedMessage = secretMessage;
+          setEncodedMessage(secretMessage);
           
           const link = document.createElement("a");
           link.href = URL.createObjectURL(encodedBlob);
@@ -97,6 +98,7 @@ export const Steganography = () => {
     setSecretMessage("");
     setSecretKey("");
     setShowDecodedMessage(false);
+    setEncodedMessage("");
   };
 
   return (
@@ -222,3 +224,4 @@ export const Steganography = () => {
       </Card>
     </div>
   );
+};
