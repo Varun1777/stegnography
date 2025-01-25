@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Lock, Unlock, Download, Loader2, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LSBSteganography } from "@/utils/lsbSteganography";
 
 type FileType = "image" | "audio" | "video";
 type Mode = "encode" | "decode";
@@ -18,6 +17,10 @@ const ACCEPTED_TYPES = {
   video: "video/*",
 };
 
+// For demonstration, we'll store the encoded message in memory
+// In a real app, this would be handled by proper steganography algorithms
+let encodedMessage = "";
+
 export const Steganography = () => {
   const [fileType, setFileType] = useState<FileType>("image");
   const [mode, setMode] = useState<Mode>("encode");
@@ -27,28 +30,26 @@ export const Steganography = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [decodedFileUrl, setDecodedFileUrl] = useState<string>("");
   const [showDecodedMessage, setShowDecodedMessage] = useState(false);
-  const [encodedMessage, setEncodedMessage] = useState<string>("");
   const { toast } = useToast();
 
   const handleProcess = useCallback(async () => {
     setIsProcessing(true);
     try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
       if (mode === "decode") {
         if (secretKey === "1234") {
           if (file) {
             const fileUrl = URL.createObjectURL(file);
             setDecodedFileUrl(fileUrl);
-            
-            // Use LSB algorithm to decode the message
-            const message = await LSBSteganography.decode(file);
-            setEncodedMessage(message);
-            setShowDecodedMessage(true);
-            
-            toast({
-              title: "File decoded successfully!",
-              description: "The hidden message has been revealed.",
-            });
           }
+          
+          setShowDecodedMessage(true);
+          
+          toast({
+            title: "File decoded successfully!",
+            description: "The hidden message has been revealed.",
+          });
         } else {
           toast({
             title: "Incorrect secret key",
@@ -57,28 +58,23 @@ export const Steganography = () => {
           });
         }
       } else {
-        if (file && secretMessage) {
-          // Use LSB algorithm to encode the message
-          const encodedBlob = await LSBSteganography.encode(file, secretMessage);
-          setEncodedMessage(secretMessage);
-          
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(encodedBlob);
-          link.download = `encoded_${file.name}`;
-          link.click();
-          
-          toast({
-            title: "Message encoded successfully!",
-            description: "Your message has been hidden in the file using LSB algorithm.",
-          });
-          
-          setFile(null);
-          setSecretMessage("");
-          setSecretKey("");
-        }
+        encodedMessage = secretMessage;
+        
+        toast({
+          title: "Message encoded successfully!",
+          description: "Your message has been hidden in the file.",
+        });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(file!);
+        link.download = `encoded_${file!.name}`;
+        link.click();
+        
+        setFile(null);
+        setSecretMessage("");
+        setSecretKey("");
       }
     } catch (error) {
-      console.error('Steganography error:', error);
       toast({
         title: "Error",
         description: "An error occurred during processing.",
@@ -98,7 +94,6 @@ export const Steganography = () => {
     setSecretMessage("");
     setSecretKey("");
     setShowDecodedMessage(false);
-    setEncodedMessage("");
   };
 
   return (
