@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Lock, Unlock, Download, Loader2, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DCTSteganography } from "@/utils/dctSteganography";
+import { LSBSteganography } from "@/utils/lsbSteganography";
 
 type FileType = "image" | "audio" | "video";
 type Mode = "encode" | "decode";
@@ -39,8 +39,8 @@ export const Steganography = () => {
             const fileUrl = URL.createObjectURL(file);
             setDecodedFileUrl(fileUrl);
             
-            // Use DCT algorithm to decode the message
-            const message = await DCTSteganography.decode(file);
+            // Use LSB algorithm to decode the message
+            const message = await LSBSteganography.decode(file);
             setEncodedMessage(message);
             setShowDecodedMessage(true);
             
@@ -58,8 +58,8 @@ export const Steganography = () => {
         }
       } else {
         if (file && secretMessage) {
-          // Use DCT algorithm to encode the message
-          const encodedBlob = await DCTSteganography.encode(file, secretMessage);
+          // Use LSB algorithm to encode the message
+          const encodedBlob = await LSBSteganography.encode(file, secretMessage);
           setEncodedMessage(secretMessage);
           
           const link = document.createElement("a");
@@ -69,7 +69,7 @@ export const Steganography = () => {
           
           toast({
             title: "Message encoded successfully!",
-            description: "Your message has been hidden in the file using DCT algorithm.",
+            description: "Your message has been hidden in the file using LSB algorithm.",
           });
           
           setFile(null);
