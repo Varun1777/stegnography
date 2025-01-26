@@ -30,6 +30,11 @@ export const Steganography = () => {
   const [encodedMessage, setEncodedMessage] = useState<string>("");
   const { toast } = useToast();
 
+  const cleanMessage = (message: string): string => {
+    // Remove any potential metadata or system characters
+    return message.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim();
+  };
+
   const handleProcess = useCallback(async () => {
     setIsProcessing(true);
     try {
@@ -39,9 +44,10 @@ export const Steganography = () => {
             const fileUrl = URL.createObjectURL(file);
             setDecodedFileUrl(fileUrl);
             
-            // Use DCT algorithm to decode the message
-            const message = await DCTSteganography.decode(file);
-            setEncodedMessage(message);
+            // Use DCT algorithm to decode the message and clean it
+            const rawMessage = await DCTSteganography.decode(file);
+            const cleanedMessage = cleanMessage(rawMessage);
+            setEncodedMessage(cleanedMessage);
             setShowDecodedMessage(true);
             
             toast({
@@ -89,7 +95,7 @@ export const Steganography = () => {
     }
   }, [mode, file, secretMessage, secretKey, toast]);
 
-  const isValid = file && secretKey && (mode === "decode" || secretMessage);
+  const isValid = Boolean(file && secretKey && (mode === "decode" || secretMessage));
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
@@ -201,7 +207,7 @@ export const Steganography = () => {
           <div className="flex justify-center pt-4">
             <Button
               onClick={handleProcess}
-              disabled={!isValid || isProcessing}
+              disabled={!isValid}
               className="relative overflow-hidden group min-w-[200px]"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-stego-accent to-stego-primary opacity-0 group-hover:opacity-10 transition-opacity" />
