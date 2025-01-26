@@ -39,7 +39,13 @@ export const Steganography = () => {
           setDecodedFileUrl(fileUrl);
           
           const message = await LSBSteganography.decode(file);
-          setEncodedMessage(message);
+          // Convert binary message to readable text
+          const decodedText = message
+            .split(" ")
+            .map(binary => String.fromCharCode(parseInt(binary, 2)))
+            .join("");
+          
+          setEncodedMessage(decodedText);
           setShowDecodedMessage(true);
           
           toast({
