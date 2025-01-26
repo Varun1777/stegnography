@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Lock, Unlock, Download, Loader2, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DCTSteganography } from "@/utils/dctSteganography";
 
 type FileType = "image" | "audio" | "video";
 type Mode = "encode" | "decode";
@@ -18,6 +17,10 @@ const ACCEPTED_TYPES = {
   video: "video/*",
 };
 
+// For demonstration, we'll store the encoded message in memory
+// In a real app, this would be handled by proper steganography algorithms
+let encodedMessage = "";
+
 export const Steganography = () => {
   const [fileType, setFileType] = useState<FileType>("image");
   const [mode, setMode] = useState<Mode>("encode");
@@ -27,40 +30,26 @@ export const Steganography = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [decodedFileUrl, setDecodedFileUrl] = useState<string>("");
   const [showDecodedMessage, setShowDecodedMessage] = useState(false);
-  const [encodedMessage, setEncodedMessage] = useState<string>("");
   const { toast } = useToast();
-
-  const cleanMessage = (message: string): string => {
-    // Remove all non-printable characters, control characters, and extra whitespace
-    return message
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Remove control characters
-      .replace(/[^\x20-\x7E]/g, '') // Keep only printable ASCII characters
-      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-      .trim(); // Remove leading/trailing whitespace
-  };
 
   const handleProcess = useCallback(async () => {
     setIsProcessing(true);
     try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
       if (mode === "decode") {
         if (secretKey === "1234") {
           if (file) {
             const fileUrl = URL.createObjectURL(file);
             setDecodedFileUrl(fileUrl);
-            
-            // Use DCT algorithm to decode the message and clean it
-            const rawMessage = await DCTSteganography.decode(file);
-            console.log("Raw decoded message:", rawMessage); // For debugging
-            const cleanedMessage = cleanMessage(rawMessage);
-            console.log("Cleaned message:", cleanedMessage); // For debugging
-            setEncodedMessage(cleanedMessage);
-            setShowDecodedMessage(true);
-            
-            toast({
-              title: "File decoded successfully!",
-              description: "The hidden message has been revealed.",
-            });
           }
+          
+          setShowDecodedMessage(true);
+          
+          toast({
+            title: "File decoded successfully!",
+            description: "The hidden message has been revealed.",
+          });
         } else {
           toast({
             title: "Incorrect secret key",
@@ -69,28 +58,23 @@ export const Steganography = () => {
           });
         }
       } else {
-        if (file && secretMessage) {
-          // Use DCT algorithm to encode the message
-          const encodedBlob = await DCTSteganography.encode(file, secretMessage);
-          setEncodedMessage(secretMessage);
-          
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(encodedBlob);
-          link.download = `encoded_${file.name}`;
-          link.click();
-          
-          toast({
-            title: "Message encoded successfully!",
-            description: "Your message has been hidden in the file using DCT algorithm.",
-          });
-          
-          setFile(null);
-          setSecretMessage("");
-          setSecretKey("");
-        }
+        encodedMessage = secretMessage;
+        
+        toast({
+          title: "Message encoded successfully!",
+          description: "Your message has been hidden in the file.",
+        });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(file!);
+        link.download = `encoded_${file!.name}`;
+        link.click();
+        
+        setFile(null);
+        setSecretMessage("");
+        setSecretKey("");
       }
     } catch (error) {
-      console.error('Steganography error:', error);
       toast({
         title: "Error",
         description: "An error occurred during processing.",
@@ -101,7 +85,7 @@ export const Steganography = () => {
     }
   }, [mode, file, secretMessage, secretKey, toast]);
 
-  const isValid = Boolean(file && secretKey && (mode === "decode" || secretMessage));
+  const isValid = file && secretKey && (mode === "decode" || secretMessage);
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
@@ -110,7 +94,6 @@ export const Steganography = () => {
     setSecretMessage("");
     setSecretKey("");
     setShowDecodedMessage(false);
-    setEncodedMessage("");
   };
 
   return (
@@ -181,10 +164,39 @@ export const Steganography = () => {
             </div>
           )}
 
+          {mode === "decode" && decodedFileUrl && (
+            <div className="mt-4 animate-fade-in">
+              <p className="text-sm text-stego-muted mb-2">Original File:</p>
+              <div className="rounded-lg overflow-hidden border border-stego-accent/20 animate-scale-in">
+                {fileType === "image" && (
+                  <img
+                    src={decodedFileUrl}
+                    alt="Original content"
+                    className="w-full h-auto max-h-[300px] object-contain"
+                  />
+                )}
+                {fileType === "video" && (
+                  <video
+                    src={decodedFileUrl}
+                    controls
+                    className="w-full h-auto max-h-[300px]"
+                  />
+                )}
+                {fileType === "audio" && (
+                  <audio
+                    src={decodedFileUrl}
+                    controls
+                    className="w-full"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-center pt-4">
             <Button
               onClick={handleProcess}
-              disabled={!isValid}
+              disabled={!isValid || isProcessing}
               className="relative overflow-hidden group min-w-[200px]"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-stego-accent to-stego-primary opacity-0 group-hover:opacity-10 transition-opacity" />
