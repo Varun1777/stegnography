@@ -125,7 +125,7 @@ export const Steganography = () => {
 
           <ProcessButton
             mode={mode}
-            isValid={isValid}
+            isValid={Boolean(isValid)}
             isProcessing={isProcessing}
             onProcess={handleProcess}
           />
