@@ -35,34 +35,22 @@ export const Steganography = () => {
     setIsProcessing(true);
     try {
       if (mode === "decode") {
-        if (secretKey === "1234" && file) {
+        if (file && secretKey) {
           const fileUrl = URL.createObjectURL(file);
           setDecodedFileUrl(fileUrl);
           
-          const message = await LSBSteganography.decode(file);
-          // Convert binary message to readable text
-          const decodedText = message
-            .split(" ")
-            .map(binary => String.fromCharCode(parseInt(binary, 2)))
-            .join("");
-          
-          setEncodedMessage(decodedText);
+          const message = await LSBSteganography.decode(file, secretKey);
+          setEncodedMessage(message);
           setShowDecodedMessage(true);
           
           toast({
             title: "File decoded successfully!",
             description: "The hidden message has been revealed.",
           });
-        } else {
-          toast({
-            title: "Incorrect secret key",
-            description: "Please enter the correct secret key to decode the message.",
-            variant: "destructive",
-          });
         }
       } else {
-        if (file && secretMessage) {
-          const encodedBlob = await LSBSteganography.encode(file, secretMessage);
+        if (file && secretMessage && secretKey) {
+          const encodedBlob = await LSBSteganography.encode(file, secretMessage, secretKey);
           setEncodedMessage(secretMessage);
           
           const link = document.createElement("a");
@@ -126,7 +114,7 @@ export const Steganography = () => {
           />
 
           <DecodedMessage
-            showMessage={mode === "decode" && showDecodedMessage}
+            showMessage={showDecodedMessage}
             message={encodedMessage}
           />
 

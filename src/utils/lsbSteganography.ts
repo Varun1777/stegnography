@@ -1,30 +1,44 @@
+import CryptoJS from 'crypto-js';
+
 export class LSBSteganography {
-  static async encode(file: File, message: string): Promise<Blob> {
-    console.log('Encoding message:', message);
+  static async encode(file: File, message: string, secretKey: string): Promise<Blob> {
+    console.log('Encoding message with key validation');
+    const hashedKey = CryptoJS.SHA256(secretKey).toString();
+    const messageWithKey = `${hashedKey}|||${message}`;
     
     if (file.type.startsWith('image/')) {
-      return this.encodeImage(file, message);
+      return this.encodeImage(file, messageWithKey);
     } else if (file.type.startsWith('audio/')) {
-      return this.encodeAudio(file, message);
+      return this.encodeAudio(file, messageWithKey);
     } else if (file.type.startsWith('video/')) {
-      return this.encodeVideo(file, message);
+      return this.encodeVideo(file, messageWithKey);
     }
     
     throw new Error('Unsupported file type');
   }
 
-  static async decode(file: File): Promise<string> {
-    console.log('Decoding file:', file.name);
+  static async decode(file: File, secretKey: string): Promise<string> {
+    console.log('Decoding message with key validation');
+    const hashedInputKey = CryptoJS.SHA256(secretKey).toString();
     
+    let encodedData: string;
     if (file.type.startsWith('image/')) {
-      return this.decodeImage(file);
+      encodedData = await this.decodeImage(file);
     } else if (file.type.startsWith('audio/')) {
-      return this.decodeAudio(file);
+      encodedData = await this.decodeAudio(file);
     } else if (file.type.startsWith('video/')) {
-      return this.decodeVideo(file);
+      encodedData = await this.decodeVideo(file);
+    } else {
+      throw new Error('Unsupported file type');
+    }
+
+    const [storedHash, message] = encodedData.split('|||');
+    
+    if (storedHash !== hashedInputKey) {
+      throw new Error('Invalid secret key');
     }
     
-    throw new Error('Unsupported file type');
+    return message;
   }
 
   private static async encodeImage(file: File, message: string): Promise<Blob> {
