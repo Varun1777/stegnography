@@ -1,13 +1,14 @@
 import { useState, useCallback } from "react";
 import { FileTypeSelector } from "./FileTypeSelector";
 import { FileUpload } from "./FileUpload";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Download, Loader2, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 import { LSBSteganography } from "@/utils/lsbSteganography";
+import { ModeSelector } from "./steganography/ModeSelector";
+import { MessageInputs } from "./steganography/MessageInputs";
+import { DecodedMessage } from "./steganography/DecodedMessage";
+import { FilePreview } from "./steganography/FilePreview";
+import { ProcessButton } from "./steganography/ProcessButton";
 
 type FileType = "image" | "audio" | "video";
 type Mode = "encode" | "decode";
@@ -105,27 +106,7 @@ export const Steganography = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-center gap-4">
-        <Button
-          variant={mode === "encode" ? "default" : "outline"}
-          onClick={() => handleModeChange("encode")}
-          className="group relative overflow-hidden w-32"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-stego-accent to-stego-primary opacity-0 group-hover:opacity-10 transition-opacity" />
-          <Lock className="w-4 h-4 mr-2" />
-          Encode
-        </Button>
-        <Button
-          variant={mode === "decode" ? "default" : "outline"}
-          onClick={() => handleModeChange("decode")}
-          className="group relative overflow-hidden w-32"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-stego-accent to-stego-primary opacity-0 group-hover:opacity-10 transition-opacity" />
-          <Unlock className="w-4 h-4 mr-2" />
-          Decode
-        </Button>
-      </div>
-
+      <ModeSelector mode={mode} onModeChange={handleModeChange} />
       <FileTypeSelector selectedType={fileType} onTypeSelect={setFileType} />
 
       <Card className="overflow-hidden border-stego-accent/20">
@@ -136,92 +117,30 @@ export const Steganography = () => {
             selectedFile={file}
           />
 
-          {mode === "encode" && (
-            <div className="space-y-4 animate-fade-in">
-              <Input
-                placeholder="Enter your secret message"
-                value={secretMessage}
-                onChange={(e) => setSecretMessage(e.target.value)}
-                className="border-stego-accent/20 focus:border-stego-accent"
-              />
-            </div>
-          )}
-
-          <Input
-            type="password"
-            placeholder="Enter your secret key"
-            value={secretKey}
-            onChange={(e) => setSecretKey(e.target.value)}
-            className="border-stego-accent/20 focus:border-stego-accent"
+          <MessageInputs
+            mode={mode}
+            secretMessage={secretMessage}
+            secretKey={secretKey}
+            onMessageChange={setSecretMessage}
+            onKeyChange={setSecretKey}
           />
 
-          {mode === "decode" && showDecodedMessage && encodedMessage && (
-            <div className="animate-fade-in">
-              <Alert className="bg-gradient-to-r from-stego-accent/10 to-stego-primary/10 border-stego-accent/20">
-                <MessageSquare className="h-4 w-4" />
-                <AlertDescription className="mt-2">
-                  <div className="font-medium text-lg text-stego-primary animate-fade-in">
-                    Hidden Message:
-                  </div>
-                  <div className="mt-2 p-4 bg-white/50 rounded-lg shadow-inner animate-scale-in">
-                    {encodedMessage}
-                  </div>
-                </AlertDescription>
-              </Alert>
-            </div>
-          )}
+          <DecodedMessage
+            showMessage={mode === "decode" && showDecodedMessage}
+            message={encodedMessage}
+          />
 
-          {mode === "decode" && decodedFileUrl && (
-            <div className="mt-4 animate-fade-in">
-              <p className="text-sm text-stego-muted mb-2">Original File:</p>
-              <div className="rounded-lg overflow-hidden border border-stego-accent/20 animate-scale-in">
-                {fileType === "image" && (
-                  <img
-                    src={decodedFileUrl}
-                    alt="Original content"
-                    className="w-full h-auto max-h-[300px] object-contain"
-                  />
-                )}
-                {fileType === "video" && (
-                  <video
-                    src={decodedFileUrl}
-                    controls
-                    className="w-full h-auto max-h-[300px]"
-                  />
-                )}
-                {fileType === "audio" && (
-                  <audio
-                    src={decodedFileUrl}
-                    controls
-                    className="w-full"
-                  />
-                )}
-              </div>
-            </div>
-          )}
+          <FilePreview
+            fileUrl={decodedFileUrl}
+            fileType={fileType}
+          />
 
-          <div className="flex justify-center pt-4">
-            <Button
-              onClick={handleProcess}
-              disabled={!isValid || isProcessing}
-              className="relative overflow-hidden group min-w-[200px]"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-stego-accent to-stego-primary opacity-0 group-hover:opacity-10 transition-opacity" />
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : mode === "encode" ? (
-                <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Encode & Download
-                </>
-              ) : (
-                "Decode Message"
-              )}
-            </Button>
-          </div>
+          <ProcessButton
+            mode={mode}
+            isValid={isValid}
+            isProcessing={isProcessing}
+            onProcess={handleProcess}
+          />
         </CardContent>
       </Card>
     </div>
