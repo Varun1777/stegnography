@@ -31,8 +31,12 @@ export const Steganography = () => {
   const { toast } = useToast();
 
   const cleanMessage = (message: string): string => {
-    // Remove any potential metadata or system characters
-    return message.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim();
+    // Remove all non-printable characters, control characters, and extra whitespace
+    return message
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Remove control characters
+      .replace(/[^\x20-\x7E]/g, '') // Keep only printable ASCII characters
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .trim(); // Remove leading/trailing whitespace
   };
 
   const handleProcess = useCallback(async () => {
@@ -46,7 +50,9 @@ export const Steganography = () => {
             
             // Use DCT algorithm to decode the message and clean it
             const rawMessage = await DCTSteganography.decode(file);
+            console.log("Raw decoded message:", rawMessage); // For debugging
             const cleanedMessage = cleanMessage(rawMessage);
+            console.log("Cleaned message:", cleanedMessage); // For debugging
             setEncodedMessage(cleanedMessage);
             setShowDecodedMessage(true);
             
@@ -172,35 +178,6 @@ export const Steganography = () => {
                   </div>
                 </AlertDescription>
               </Alert>
-            </div>
-          )}
-
-          {mode === "decode" && decodedFileUrl && (
-            <div className="mt-4 animate-fade-in">
-              <p className="text-sm text-stego-muted mb-2">Original File:</p>
-              <div className="rounded-lg overflow-hidden border border-stego-accent/20 animate-scale-in">
-                {fileType === "image" && (
-                  <img
-                    src={decodedFileUrl}
-                    alt="Original content"
-                    className="w-full h-auto max-h-[300px] object-contain"
-                  />
-                )}
-                {fileType === "video" && (
-                  <video
-                    src={decodedFileUrl}
-                    controls
-                    className="w-full h-auto max-h-[300px]"
-                  />
-                )}
-                {fileType === "audio" && (
-                  <audio
-                    src={decodedFileUrl}
-                    controls
-                    className="w-full"
-                  />
-                )}
-              </div>
             </div>
           )}
 
