@@ -114,7 +114,7 @@ export const Steganography = () => {
           />
 
           <DecodedMessage
-            showMessage={showDecodedMessage}
+            showMessage={Boolean(showDecodedMessage)}
             message={encodedMessage}
           />
 
